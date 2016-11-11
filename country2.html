@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <title>GitHubViz - Visualizing Activity in GitHub</title>
+    <!--<script src="//d3js.org/d3.v3.min.js"></script>-->
+    <!--<script src="//d3js.org/topojson.v1.min.js"></script>-->
+    <script src="d3.min.js"></script>
+    <script src="topojson.min.js"></script>
+    <script src="d3-queue.min.js"></script>
+    <script src="d3-geo.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/githut.css">
+    <link type="text/css" rel="stylesheet" href="css/spinning-globe.css"/>
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+    <script>
+        var entry = [];
+        var dataset_asc, dataset_des;
+        var total_num = 0;
+
+        function PreProcessEntries(callback) {
+            d3.json("data/act_by_country.json", function (q) {
+
+                q.forEach(function (obj) {
+                    entry.push({"num":obj["num"], "country": obj["location"], "rate":0});
+                });
+
+                //points.sort(function(a, b){return b-a});    // Sort the numbers in the array in descending order
+
+                var num;
+                entry.forEach(function (c) {
+//                    d3.json("data/pop_by_country.json", function (m) {
+//                        var k;
+//                        for(k = 0; k < m.length; k++){
+//                            break;
+//                            if (c["country"] == m[k]["country"]){
+//                                c["num"] = parseInt(c["num"])/m[k]["population"];
+//                                break;
+//                            }
+//                        }
+//                        console.log(c["country"]);
+//                        console.log(c["num"]*10);
+                        c["rate"] = Math.log(c["num"])/ (Math.LN2*25);
+                        total_num += c["num"];
+                    });
+                //c["rate"] = Math.log(c["num"]*100);
+                //});
+
+                dataset_asc = entry.slice();
+                dataset_des = entry.slice();
+
+                dataset_asc.sort(function(a, b){return b.num-a.num});
+
+                dataset_des.sort(function(a, b){return a.num-b.num});
+
+
+
+                dataset_asc = dataset_asc.slice(0, 10);
+                dataset_asc.sort(function(a, b){return a.num-b.num});
+
+                dataset_des = dataset_des.slice(0, 10);
+                dataset_des.sort(function(a, b){return b.num-a.num});
+
+//                dataset_asc.push(array_dataset_asc);
+//                dataset_des.push(array_dataset_des);
+
+                callback();
+            });
+
+       }
+
+        function load(){
+            d3.queue()
+                    .defer(d3.json, "data/world-110m.json")
+                    .defer(d3.tsv, "data/world-110m-country-names.tsv")
+                    .await(ready);
+        }
+
+        PreProcessEntries(load);
+
+    </script>
+</head>
+<body>
+<div id="header">
+    <h1>GitHub<b>Viz</b></h1>
+    <h2>Visualizing user Activity in GitHub</h2>
+</div>
+<div class="canvas-div"></div>
+<div class="chart-div">
+    <form>
+        <div id="chart-text">
+            Stats per Country:
+                    <input type="radio" name="group1" id="radio-1" value="asc">
+                    <label for="radio-1"><span class="radio">Top 10</span></label>
+
+                    <input type="radio" name="group1" id="radio-2" value="des">
+                    <label for="radio-2"><span class="radio">Bottom 10</span></label>
+        </div>
+    </form>
+</div>
+<script>
+
+    var width = 600,
+            height = 600,
+            speed = -1e-2,
+            start = Date.now();
+
+    var color = d3.scale.linear().range(["#fff7bc", '#d95f0e'])
+            .domain([0.44, 1]);
+
+    var title = d3.select("h1");
+
+    var projection = d3.geo.orthographic()
+            .scale(width / 2.1)
+            .clipAngle(90)
+            .translate([width / 2, height / 2]);
+
+    var graticule = d3.geo.graticule();
+
+    var canvas = d3.select(".canvas-div").append("canvas")
+            .attr("width", width)
+            .attr("height", height);
+
+    var context = canvas.node().getContext("2d");
+
+   // var g = canvas.append("g");
+
+    var path = d3.geo.path()
+            .projection(projection)
+            .context(context);
+
+
+    function ready(error, world, names) {
+
+        var globe = {type: "Sphere"},
+                land = topojson.feature(world, world.objects.land),
+                countries = topojson.feature(world, world.objects.countries).features,
+                borders = topojson.mesh(world, world.objects.countries, function (a, b) {
+                    return a !== b;
+                }),
+                i = -1,
+                n = countries.length;
+
+        countries = countries.filter(function (d) {
+            return names.some(function (n) {
+                if (d.id == n.id) return d.name = n.name;
+            });
+        }).sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
+
+
+        d3.json("data/world-110m.json", function (error, topo) {
+            if (error) throw error;
+
+            var land = topojson.feature(topo, topo.objects.land),
+                    grid = graticule();
+
+            var j;
+            for(j = 0; j < countries.length; j++){
+                countries[j]["rate"] = 0;
+            }
+
+//            console.log(entry);
+
+            var counter = 0;
+            entry.forEach(function (c) {
+                var k;
+                for(k = 0; k < countries.length; k++) {
+                    if (c["country"] == countries[k].name) {
+                        counter++;
+                        countries[k]["rate"] = c["rate"];
+                        break;
+                    }
+                }
+            });
+
+            change(dataset_asc);
+
+            d3.timer(function () {
+                var λ = speed * (Date.now() - start),
+                        φ = -5;
+
+                context.clearRect(0, 0, width, height);
+
+                context.beginPath();
+                path(globe);
+                context.lineWidth = 3;
+                context.strokeStyle = "#000";
+                context.stroke();
+                context.fillStyle = "#fff";
+                context.fill();
+
+                context.save();
+                context.translate(width - 37, 0);
+                context.scale(-1, 1);
+                context.translate(-width + 37, 0);
+                projection.rotate([λ + 180, -φ]);
+//
+
+                var i;
+               for(i=0; i < countries.length; i++){
+                    context.beginPath();
+                    path(countries[i]);
+                    context.fillStyle = "#dadac4";
+                    context.fill();
+                }
+                //console.log(countries[10].name);
+
+                context.beginPath();
+                path(grid);
+                context.lineWidth = .5;
+                context.strokeStyle = "rgba(119,119,119,.5)";
+                context.stroke();
+
+                context.restore();
+                projection.rotate([λ, φ]);
+
+                context.beginPath();
+                path(grid);
+                context.lineWidth = .5;
+                context.strokeStyle = "rgba(119,119,119,.5)";
+                context.stroke();
+
+                for(i=0; i < countries.length; i++){
+
+                    //console.log(countries[i]["rate"]);
+                    context.beginPath();
+                    path(countries[i]);
+                    context.fillStyle = color(countries[i]["rate"]);
+                    context.fill();
+                    context.lineWidth = .5;
+                    context.strokeStyle = "#000";
+                    context.stroke();
+                    context.fill();
+                }
+
+            });
+
+        });
+
+
+    }
+
+    d3.select(self.frameElement).style("height", height + "px");
+
+</script>
+
+<script>
+
+    d3.selectAll("input").on("change", selectDataset);
+
+    function selectDataset()
+    {
+        var value = this.value;
+        if (value == "asc")
+        {
+            console.log(dataset_asc);
+            change(dataset_asc);
+        }
+        else if (value == "des")
+        {
+            change(dataset_des);
+        }
+    }
+
+    var margin = {top: (parseInt(d3.select('.chart-div').style('height'), 10)/20), right: (parseInt(d3.select('.chart-div').style('width'), 10)/20), bottom: (parseInt(d3.select('.chart-div').style('height'), 10)/20), left: (parseInt(d3.select('.chart-div').style('width'), 10)/5)},
+            width = parseInt(d3.select('.chart-div').style('width'), 10) - margin.left - margin.right,
+            height = parseInt(d3.select('.chart-div').style('height'), 10) - margin.top - margin.bottom;
+
+    height = height/2;
+
+    var div = d3.select(".chart-div").append("div")
+            .attr("class", "toolTip")
+            .style("z-index", "1");
+
+    var formatPercent = d3.format("");
+
+    var y = d3.scale.ordinal()
+            .rangeRoundBands([height, 0], .2, 0.5);
+
+    var x = d3.scale.linear()
+            .range([0, width]);
+
+    var xAxis = d3.svg.axis()
+            .scale(x)
+            .ticks(5)
+            .tickSize(-height)
+            .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+    //.tickFormat(formatPercent);
+
+    var svg = d3.select(".chart-div").append("svg")
+
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+    d3.select("input[value=\"asc\"]").property("checked", true);
+
+   var line = d3.select(".chart-div").append("div")
+            .attr("class", ".txt")
+            .append("div")
+            .attr("class", "hr")
+            .html("<hr/>")
+           .append("div")
+           .attr("id", "desc-text")
+            .html("&nbsp &nbsp &nbsp &nbsp This visualization illustrate user activity in GitHub by country.  The map is colored " +
+                    "in proportion to the number of GitHub events that happened on 2014. The chart shows the percentage" +
+                    " of events on the top 10 and bottom 10 countries. The percentage was calculated over the total number " +
+                    "of events which location could be tracked.");
+
+
+
+    function change(dataset) {
+
+        console.log(dataset);
+
+        y.domain(dataset.map(function(d) { return d.country; }));
+        x.domain([0, d3.max(dataset, function(d) { return d.num; })]);
+
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+        svg.select(".y.axis").remove();
+        svg.select(".x.axis").remove();
+
+        svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(0)")
+                .attr("x", 50)
+                .attr("dx", ".2em")
+                .style("text-anchor", "end")
+                .text("Country ");
+
+
+        var bar = svg.selectAll(".bar")
+                .data(dataset, function(d) { return d.country; });
+        // new data:
+        bar.enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x(d.num); })
+                .attr("y", function(d) { return y(d.country); })
+                .attr("width", function(d) { return width-x(d.num); })
+                .attr("height", y.rangeBand());
+
+        bar
+                .on("mousemove", function(d){
+                    div.style("left", d3.event.pageX+10+"px");
+                    div.style("top", d3.event.pageY-25+"px");
+                    div.style("display", "inline-block");
+                    div.html("<b><big>" + (d.country) + "</big></b></br><br><b> "+ (parseInt(d.num)*100/total_num).toFixed(5) +"%</b>");
+                });
+        bar
+                .on("mouseout", function(d){
+                    div.style("display", "none");
+                });
+
+
+        // removed data:
+        bar.exit().remove();
+
+        // updated data:
+        bar.transition()
+                .duration(1500)
+                .attr("x", function(d) { return 0; })
+                .attr("y", function(d) { return y(d.country); })
+                .attr("width", function(d) { return x(d.num); })
+                .attr("height", y.rangeBand());
+
+    }
+
+</script>

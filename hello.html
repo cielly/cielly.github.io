@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>parallel coordinates</title>
+    <!--<link href='http://fonts.googleapis.com/css?family=PT+Sans:400' rel='stylesheet' type='text/css'>-->
+    <!--<link href="http://fonts.googleapis.com/css?family=Raleway:300,700" rel="stylesheet" type="text/css">-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/pc.css">
+    <link rel="stylesheet" href="css/sm.css">
+    <link rel="stylesheet" href="css/lc.css">
+
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/foundation/js/foundation.js"></script>
+    <script src="bower_components/modernizr/modernizr.js"></script>
+    <!--<script src="bower_components/d3/d3.min.js"></script>-->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js" charset="utf-8"></script>
+    <script>window.d3||document.write('<script src="web/js/vendors/d3/d3.min.js"><\/script>');</script>
+
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>Git<b>Hut</b></h1>
+        <h2>Visualizing programming languages in GitHub</h2>
+    </div>
+    <div id="qc"></div>
+    <div id="pc"></div>
+    <div id="sm_header">
+        <h2>Which languages are trending more?</h2>
+        <h3>Trending programming languages in active GitHub repository</h3>
+        <a href="#" id="num">#</a>
+        &nbsp;&nbsp;
+        <a href="#" id="perc">%</a>
+    </div>
+    <div id="sm"></div>
+    <div id="footer"></div>
+</div>
+<script src="js/parallelcoordinates.js"></script>
+
+<script>
+
+    // Languages by creation date
+    d3.csv("data/languages.csv",function(d){
+
+        d["Year"]=+d["Year"];
+        d["name_lc"]=d["Name"].toLowerCase();
+
+        return d;
+
+    },function(data){
+
+        //console.log(data);
+
+        var programming_languages={};
+        data.forEach(function(lang){
+            programming_languages[lang["name_lc"]]=lang["Year"];
+        })
+
+        var unknonw=[];
+
+        d3.json("data/quantity.json",function(q){
+
+            console.log("q")
+            console.log(q[0].language_name)
+
+            //q.active_repos_by_url=+q.active_repos_by_url;
+            //q.events=+q.events;
+
+            for (var i = 0; i < q.length; i++){
+                var obj = q[i];
+                //console.log("obj:")
+                //console.log(obj)
+                if(!programming_languages[obj.language_name.toLowerCase()]) {
+                   if(unknonw.indexOf(obj.language_name.toLowerCase())==-1) {
+                       unknonw.push(obj.language_name.toLowerCase())
+                   }
+                }
+
+                q.year=programming_languages[obj.language_name.toLowerCase()] || 3000;
+
+            }
+
+            //console.log(q.language_name,q)
+            return q;
+        },function(data){
+            console.log(data);
+
+            console.log(unknonw)
+
+            var quantity={};
+            data.forEach(function(d){
+
+                if(!quantity[d["language_name"]]) {
+                    quantity[d["language_name"]]={
+                        language_name:d["language_name"]
+                    };
+                }
+                quantity[d["language_name"]][d["month"]]=d["quantity"];
+
+                quantity[d["language_name"]].year=d.year;
+                //events["active_repos_by_url"]=d["active_repos_by_url"];
+            })
+            console.log(d3.values(quantity));
+            //return;
+            pc=new ParallelCoordinates(d3.values(quantity),{
+                //nested_by_quarter:nested_by_quarter,
+                programming_languages:programming_languages,
+                container:"#pc",
+                scale:"linear",
+                //columns:["name","created","active_repos_by_url","lang_usage","events_per_repo","sum_rep_size","sum_rep_forks","sum_rep_openissues","sum_rep_watchers","year"],
+                columns:["name","jan","fev","mar","year"],//"CreateEvent"
+                ref:"lang_usage",
+                title_column:"name",
+                scale_map:{
+                    "year":"linear",
+                    "name":"ordinal",
+                    "name2":"ordinal",
+                    "jan":"ordinal",
+                    "fev":"ordinal",
+                    "mar":"ordinal",
+                },
+                use:{
+                    "name":"jan"
+                },
+                sorting:{
+                    "name":d3.descending
+                },
+                formats:{
+                    "year":"d"
+                },
+                dimensions:["jan","fev","mar","year","name"],
+                column_map:{
+                    "name":["Repository","Language"],
+                    "jan":"Janeiro",
+                    "fev":"Fevereiro",
+                    "mar":"Marco",
+                    "lang_usage":"Events",
+                    "year":["Appeared","in Year"],
+                },
+                duration:1000,
+                path:"data/",
+                extension:"json"
+            });
+
+            d3.select("#load")
+                    .selectAll("a.load")
+                    .data([
+                        "quantity"
+                    ])
+                    .enter()
+                    .append("a")
+                    .text(function(d){
+                        return d;
+                    })
+                    .attr("href","#")
+                    .style({
+                        margin:"0px 5px"
+                    })
+                    .on("click",function(d){
+                        d3.event.preventDefault();
+                        pc.loadData(d);
+                    })
+
+
+        });
+
+
+
+
+    });
+
+
+</script>
+
+
+</body>
+</html>

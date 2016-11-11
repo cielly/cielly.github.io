@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Activity by timezone</title>
+
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
+
+    <link rel="stylesheet" href="css/normalize.css">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width">
+
+    <!--<link rel="stylesheet" href="css/tooltip-classic.css">-->
+
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="//d3js.org/topojson.v1.min.js"></script>
+
+</head>
+
+    <main class="stats">
+    <header class="stats__header">
+        <div class="stats__header-num">
+            <p>24h</p>
+        </div>
+        <div class="stats__header-name">
+            <p>Timezone<span></span></p>
+        </div>
+    </header>
+    <ul class="stats__list">
+        <li class="stats__item">
+            <p class="stats__item-num">0-1</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">1-2</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">2-3</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">3-4</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">4-5</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">5-6</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">6-7</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">7-8</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">8-9</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">9-10</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">10-11</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">11-12</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">12-13</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">13-14</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">14-15</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">15-16</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">16-17</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">17-18</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">18-19</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">19-20</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">20-21</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">21-22</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">22-23</p>
+            <div class="stats__item-bar"></div>
+        </li>
+        <li class="stats__item">
+            <p class="stats__item-num">23-0</p>
+            <div class="stats__item-bar"></div>
+        </li>
+
+    </ul>
+    <div class="stats__overlay">
+        <div class="stats__overlay-back">
+            <svg fill="white" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><path d="M30 16.5H11.74l8.38-8.38L18 6 6 18l12 12 2.12-2.12-8.38-8.38H30v-3z"></path></svg>
+            <p id="hour"></p>
+        </div>
+        <div class="stats__overlay-avg">
+            <p class="avg" id="ranking"></p>
+            <p>Percentage</p>
+        </div>
+        <div class="stats__overlay-info">
+            <div class="stats__overlay-info-half">
+                <p id="total"></p>
+                <p>Total number of commits</p>
+            </div>
+            <!--<div class="stats__overlay-info-half">-->
+                <!--<p id="ranking"></p>-->
+                <!--<p>Percentage</p>-->
+            <!--</div>-->
+        </div>
+    </div>
+</main>
+
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+
+    <script src="js/barchart.js"></script>
+
+
+
+    </body>
+</html>

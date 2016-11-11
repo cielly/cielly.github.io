@@ -1,0 +1,7 @@
+To clean country x num:
+
+- earth
+- internet 
+- global
+- planet
+- clouds

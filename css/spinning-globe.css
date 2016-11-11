@@ -1,0 +1,318 @@
+@font-face {
+    font-family: 'githut';
+    src: url('../font/githut.eot?66889746');
+    src: url('../font/githut.eot?66889746#iefix') format('embedded-opentype'),
+    url('../font/githut.woff?66889746') format('woff'),
+    url('../font/githut.ttf?66889746') format('truetype'),
+    url('../font/githut.svg?66889746#githut') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    margin:0;
+    padding:0;
+
+    background: #fcfcfa;
+    background: radial-gradient(ellipse at center, #FFFFFF 0%, #f5f5f0 100%);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #4d4d4d;
+    /*width: 930px;*/
+    /*height: 500px;*/
+    /*position: relative;*/
+}
+h1,h2,h3,h4,h5,h6 {
+    text-rendering: optimizeLegibility;
+}
+
+#header {
+    width:80%;
+    min-width: 960px;
+    margin:0 auto 10px;
+    padding-bottom:5px;
+    position: relative;
+}
+#header h1 {
+    font-size: 23px;
+    color:#334d4d;
+    font-weight: 400;
+    margin:0;
+    text-align: center;
+    padding: 0;
+}
+#header h1 b{
+    font-weight: 700;
+}
+#header h2 {
+    font-size: 13px;
+    color:#666;
+    font-weight: 300;
+    margin:0;
+    text-align: center;
+    padding: 0;
+    text-transform: uppercase;
+}
+
+#chart-text {
+    font-size: 12px;
+    color:#666;
+    margin:0;
+    text-align: center;
+    padding: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+#desc-text {
+    font-size: 12px;
+    color:#666;
+    margin-top: 25px;
+    text-align: justify;
+    padding: 0;
+    font-weight: 400;
+}
+
+.canvas-div {
+    margin-left:7%;
+    width: 50%;
+    height: 80%;
+    position: relative;
+    float: left;
+}
+
+.chart-div {
+    margin-left: 58%;
+    margin-right: 10%;
+    margin-top: 1%;
+    width: 35%;
+    height: 85%;
+    position: absolute;
+}
+
+/*div.hr {*/
+    /*border: 0;*/
+    /*height: 1px;*/
+    /*margin-left: 40%;*/
+    /*margin-right: 40%;*/
+    /*background-image: linear-gradient(to right, rgba(159, 159, 147, 0), rgba(0, 0, 0, 0.3), rgba(159, 159, 147, 0));*/
+    /*margin-bottom: 5px;*/
+/*}*/
+
+svg {
+    width: 100%;
+    height: 60%;
+    position: relative;
+}
+
+.txt {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+hr {
+    margin-right: 10%;
+    margin-left: 20%;
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
+
+
+path.slice{
+    stroke-width:2px;
+}
+
+text{
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+polyline{
+    opacity: .3;
+    stroke: black;
+    stroke-width: 2px;
+    fill: none;
+}
+
+.labelValue
+{
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 60%;
+    opacity: .5;
+
+}
+
+label {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: normal;
+}
+
+.toolTip {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    position: fixed;
+    display: none;
+    width: auto;
+    height: auto;
+    background: none repeat scroll 0 0 white;
+    border: 0 none;
+    border-radius: 8px 8px 8px 8px;
+    box-shadow: -3px 3px 15px #888888;
+    color: black;
+    font: 12px sans-serif;
+    padding: 20px 30px;
+    text-align: center;
+    z-index:-1;
+}
+
+
+.legend {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 60%;
+}
+rect {
+    stroke-width: 2;
+}
+
+text {
+    font: 10px sans-serif;
+}
+
+
+text.value{
+    font-size: 200%;
+    fill: white;
+}
+
+text.label{
+    font-size: 100%;
+}
+
+.axis text {
+    font: 10px sans-serif;
+}
+
+.axis path{
+    fill: none;
+    stroke: #000;
+}
+
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis .tick line {
+    stroke-width: 1;
+    stroke: rgba(0, 0, 0, 0.2);
+}
+
+.axisHorizontal path{
+    fill: none;
+}
+
+.axisHorizontal line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axisHorizontal .tick line {
+    stroke-width: 1;
+    stroke: rgba(0, 0, 0, 0.2);
+}
+
+.bar {
+    fill: #998ec3;
+    fill-opacity: 0.8;
+}
+
+.x.axis path {
+    display: none;
+}
+
+#first {
+    background-color: #4B4D65;
+}
+#second {
+    background-color: #FF8A66;
+}
+.section {
+    padding: 100px;
+    padding-left: 150px;
+}
+.section input[type="radio"],
+.section input[type="checkbox"]{
+    display: none;
+}
+.container {
+    margin-bottom: 10px;
+}
+.container label {
+    position: relative;
+}
+
+/* Base styles for spans */
+.container span::before,
+.container span::after {
+    font-family: FontAwesome;
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+/* Radio buttons */
+.container span.radio:hover {
+    cursor: pointer;
+}
+.container span.radio::before {
+    left: -52px;
+    width: 45px;
+    height: 25px;
+    background-color: #A8AAC1;
+    border-radius: 50px;
+    font-family: FontAwesome;
+}
+.container span.radio::after {
+    left: -49px;
+    width: 17px;
+    height: 17px;
+    border-radius: 10px;
+    background-color: #6C788A;
+    transition: left .25s, background-color .25s;
+}
+input[type="radio"]:checked + label span.radio::after {
+    left: -27px;
+    background-color: #f1a340;
+}
+
+/* Check-boxes */
+.container span.checkbox::before {
+    width: 27px;
+    height: 27px;
+    background-color: #fff;
+    left: -35px;
+    box-sizing: border-box;
+    border: 3px solid transparent;
+    transition: border-color .2s;
+    font-family: FontAwesome;
+
+}
+.container span.checkbox:hover::before {
+    border: 3px solid #F0FF76;
+}
+.container span.checkbox::after {
+    content: '\f00c';
+    font-family: 'FontAwesome';
+    left: -31px;
+    top: 2px;
+    color: transparent;
+    transition: color .2s;
+}
+input[type="checkbox"]:checked + label span.checkbox::after {
+    color: #62AFFF;
+}

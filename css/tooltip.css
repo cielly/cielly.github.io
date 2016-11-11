@@ -1,0 +1,41 @@
+.tooltip {
+    background: none;
+    color: #333;
+    font-size: 12px;
+    left: 1px;
+    /*padding: 10px;*/
+    position: absolute;
+    text-align: center;
+    top: 1px;
+    bottom: 15px;
+    /*width: 80px;*/
+    z-index: 10;
+    display: block;
+    visibility: visible;
+}
+
+.tooltip .info{
+    text-align: left;
+    font-size: 11px;
+    position:absolute;
+    z-index: 10;
+    visibility: hidden;
+    width:140px;
+    height:45px;
+    padding:10px;
+    border-radius:10px;
+    background:#3D4A48;
+    color: #d8d8d8;
+    box-shadow: inset 0px 0px 1px 1px rgba(33,65,60,1);
+    transition: opacity 0.2s, transform 0.2s;
+}
+.tooltip .info:after{
+    content:'';
+    position:absolute;
+    left:110px; bottom:-10px;
+    width:20px; height:20px;
+    background:inherit;
+    transform:rotate(45deg);
+    box-shadow: inset -1px -1px 1px -1px rgba(33,65,60,1);
+    transition: opacity 0.2s, transform 0.2s;
+}

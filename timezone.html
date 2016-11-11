@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHubViz - Contribution by timezone</title>
+
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
+    <link rel="stylesheet" href="css/githut.css">
+    <link rel="stylesheet" href="css/timezone.css">
+    <link rel="stylesheet" href="css/lc.css">
+    <link rel="stylesheet" href="css/tooltip.css">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Questrial" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Shadows+Into+Light" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Francois+One" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Advent+Pro" />
+    <!--<link rel="stylesheet" href="css/tooltip-classic.css">-->
+
+
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/foundation/js/foundation.js"></script>
+    <script src="bower_components/modernizr/modernizr.js"></script>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="//d3js.org/topojson.v1.min.js"></script>
+    <script src="js/d3tip.js"></script>
+
+    <script>
+        var color = d3.scale.linear().range(["#9ecae1", "#08519c"])
+                .domain([0, 1]);
+
+        function PreProcessSections(callback) {
+            d3.json("data/tz_offset.json", function (q) {
+                var found;
+
+                q.forEach(function (obj) {
+                    found = false;
+                    for(var i = 0; i < sections.length; i++){
+                        if(sections[i]["offset"] == obj.offset){
+                            for (var j = 0; j < obj.utc.length; j++){
+                                sections[i]["utc"].push(obj.utc[j]);
+                            }
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found){
+                        sections.push({"offset":obj.offset, "utc":obj.utc});
+                    }
+                });
+
+                //console.log(sections);
+                callback();
+
+            })
+        }
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function TreatCommitData(callback) {
+            d3.json("data/commits_by_timezone.json", function (q) {
+                q.forEach(function (obj) {
+                    var offset = parseFloat(obj.author_tz_offset);
+                    offset = Math.round(offset*100/60)/100;
+
+                    for(var i = 0; i < sections.length; i++){
+                        if(sections[i]["offset"] == offset){
+                            sections[i].num_authors = obj.num_authors;
+                            sections[i].num_commits = obj.num_commits;
+                            num_authors_total += obj.num_authors;
+                            break;
+                        }
+                    }
+//                if (!found){
+//                    sections.push({"offset":obj.offset, "utc":obj.utc});
+//                    console.log(obj.offset);
+//                }
+                });
+
+                sectionsByNumAuthors = sections.slice(0);
+                sectionsByNumAuthors.sort(function(a,b) {
+                    return parseInt(b.num_authors) - parseInt(a.num_authors);
+                });
+
+                callback();
+            });
+
+        }
+
+        function ColorMap(callback) {
+            var max = Math.max.apply(Math,sections.map(function(o){return parseInt((o.num_authors).replace(/,/g, ""))}));
+
+            for(var i = 0; i < sections.length; i++){
+                var rate = parseInt((sections[i].num_authors))/max;
+
+                for (var j = 0; j < sections[i].utc.length; j++) {
+                    var tz_id = sections[i].utc[j];
+                    //console.log(sections[i].utc[j]);
+                    tz_id = "#" + tz_id.replace(/\//g, "-");
+                    d3.select(tz_id)
+                    //        .classed("grad", true);
+                    //.style("fill", function(rate) { return color(rate); })
+                        .transition().duration(3000)
+                        .attr("fill", function() { return color(rate); });
+
+//                    console.log("here");
+                }
+            }
+            callback();
+        }
+
+        function runPreProcess(callback) {
+            PreProcessSections(function () {
+                TreatCommitData(function () {
+                    ColorMap(callback);
+                });
+            });
+        }
+
+        runPreProcess(function () {
+            console.log('finish');
+        })
+
+    </script>
+
+</head>
+<body>
+<div id="header">
+    <h1>GitHub<b>Viz</b></h1>
+    <h2>Visualizing Contribution in GitHub</h2>
+</div>
+<div class="wrapper"></div>
+<script>
+
+    var sections = [];
+    var num_authors_total = 0;
+    var sectionsByNumAuthors;
+    var tooltip;
+    var zone_info;
+
+    var WIDTH=972;
+    var HEIGHT= 670;
+    var centered;
+    var margin = {top: -5, right: -5, bottom: -5, left: -5};
+
+    var zoom = d3.behavior.zoom()
+            .scaleExtent([1, 10])
+            .on("zoom", zoomed);
+
+    var svg = d3.select(".wrapper")
+            .style("width",WIDTH+"px")
+            .append("svg")
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 972 670");
+//            .attr("width", WIDTH)
+//            .attr("height", HEIGHT);
+
+    svg.append("rect")
+            .attr("class", "background")
+            .attr("width", WIDTH)
+            .attr("height", HEIGHT)
+            .on("click", clicked);
+
+    var g = svg.append("g");
+
+    var projection = d3.geo.mercator()
+                .scale(WIDTH / 2 / Math.PI)
+                .translate([WIDTH / 2, HEIGHT / 2])
+                .precision(.1);
+
+    var path = d3.geo.path()
+                .projection(projection);
+
+    var graticule = d3.geo.graticule();
+
+    g.append("path")
+                .datum(graticule)
+                .attr("class", "graticule")
+                .attr("d", path);
+
+        d3.json("timezones.json", function (error, timezones) {
+            if (error) throw error;
+
+            path.projection(null);
+
+            tooltip = d3.select("body")
+                    .append("div")
+                    .attr('class', 'tooltip')
+                    .append("div")
+                    .attr('class', 'info');
+
+            zone_info = d3.select("body")
+                    .append("div")
+                    .attr('class', 'zone_info')
+                    .append("div")
+                    .attr('class', 'info');
+
+
+            //.text("simple tooltip");
+
+            g.insert("g", ".graticule")
+                    .attr("class", "timezones")
+                    .selectAll("path")
+                    .data(topojson.feature(timezones, timezones.objects.timezones).features)
+                    .enter().append("path")
+                    .attr("d", path)
+                    .attr("id", function (d) {
+                        var tz_id = d.id;
+                        return tz_id.replace(/\//g, "-");
+                    })
+                    .on("mouseover", function (d) {
+                        ShowTZ(d, true);
+//                    return tooltip2
+//                            .style('visibility', 'visible')
+//                            .text(d.id);
+                       //console.log(d.id);
+                           // .select('.info').html("oi!");
+
+                    })
+                    .on("mousemove", function () {
+                        return tooltip.style("top",
+                                (d3.event.pageY - 105) + "px").style("left", (d3.event.pageX - 120) + "px");
+                    })
+                    .on("mouseout", function (d) {
+                        ShowTZ(d, false);
+                        return tooltip.style('visibility', 'hidden');
+                    })
+                    .style("cursor","pointer")
+                    .on("click", clicked);
+
+            g.insert("path", ".graticule")
+                    .datum(topojson.mesh(timezones, timezones.objects.timezones, function (a, b) {
+                        return a !== b;
+                    }))
+                    .attr("class", "boundary")
+                    .attr("d", path);
+
+        });
+
+    function zoomed() {
+        console.log("zoomin");
+        container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    }
+
+    function clicked(d) {
+        //console.log(d.id);
+        console.log(sectionsByNumAuthors);
+        var x, y, k;
+
+        if (d && centered !== d) {
+            var centroid = path.centroid(d);
+            x = centroid[0]-50;
+            y = centroid[1];
+            k = 4;
+            centered = d;
+
+            var offset, index;
+            sectionsByNumAuthors.forEach(function (obj, j) {
+                for (var i = 0; i < obj.utc.length; i++) {
+                    if (obj.utc[i] == d.id) {
+                        offset = obj.offset;
+                        index = j;
+                        break;
+                    }
+                }
+
+            });
+
+            var img_path;
+            console.log(index);
+            switch (index) {
+                case 0: img_path = "images/gold-medal.svg"; break;
+                case 1: img_path = "images/silver-medal.svg"; break;
+                case 2: img_path = "images/bronze-medal.svg"; break;
+                default: img_path = ""; break;
+            }
+
+            var myoffset;
+            if(offset >= 0) {
+                myoffset = "+" + String(offset);
+            }
+            else myoffset = String(offset);
+
+            if (index <= 2){
+                zone_info
+                        .html(  "<h3>Timezone<span>UTC"+ myoffset + ":00</span></h3>" +
+                                "<br><h6>" + (index+1) + "<span>°</span>"+
+                                "<img src=" + img_path + " STYLE=\"position:relative; bottom:7px; LEFT:10px; width:25px;height:25px;\"></h6>" +
+                                "<br><h5>Total number of commits: <span>" + numberWithCommas(sectionsByNumAuthors[index].num_commits) + "</span>" +
+//                                "<br><h5>Most popular repositories: " +
+                                "<br><h4>Which is the most productive TIME?");
+            }
+            else{
+                zone_info
+                        .html(  "<h3>Timezone<span>UTC"+ myoffset + ":00</span></h3>" +
+                                "<br><h6>" + (index+1) + "<span>°</span>"+
+                                "<br><h5>Total number of commits: <span>" + numberWithCommas(sectionsByNumAuthors[index].num_commits) + "</span>" +
+//                                "<br><h5>Most popular repositories: " +
+                                "<br><h4>Which is the most productive TIME?");
+            }
+
+                    zone_info
+                            .style("top", "100px")
+                            .style("left", "70px")
+                            .transition()
+                            .delay(750)
+                            .style('visibility', 'visible');
+
+                    var svg_box = zone_info
+                            .append("div")
+                            .attr('class', 'leftbox')
+                            .append("svg")
+                            .attr('width', 200)
+                            .attr('height', 300)
+
+                    var my_rect =  svg_box
+                            .append("svg:image")
+                            .attr('width', 80)
+                            .attr('height', 100)
+                            .attr("xlink:href","images/graph.svg")
+                            .style("cursor","pointer")
+                            .on("click", function () {
+                                localStorage.setItem("tz_selected", offset);
+                                console.log(offset);
+
+                                window.location = "hist.html";
+                            });
+
+
+//            var my_img = svg_box
+//                    .append("svg:image")
+//                    .attr('width', 20)
+//                    .attr('height', 24)
+//                    .attr("xlink:href","images/bronze-medal.svg");
+
+                    tooltip.style('visibility', 'hidden');
+        }else {
+            x = WIDTH / 2;
+            y = HEIGHT / 2;
+            k = 1;
+            centered = null;
+            console.log("voltei");
+            zone_info.style('visibility', 'hidden');
+        }
+
+        g.selectAll("path")
+                .classed("active", centered && function(d) { return d === centered; })
+                .classed("info", true);
+
+        g.transition()
+                .duration(750)
+                .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+                .style("stroke-width", 1.5 / k + "px");
+
+        //d3.select("body").classed("info", true);
+
+    }
+
+
+    function ShowTZ(tz, hover_stat){
+        //function ShowTZ(tz){
+            var offset;
+
+            d3.json("data/tz_offset.json", function (q) {
+
+                q.forEach(function (obj) {
+                    for (var i = 0; i < obj.utc.length; i++) {
+                        if (obj.utc[i] == tz.id) {
+                            offset = obj.offset;
+                           // console.log(offset);
+                            break;
+                        }
+                    }
+                });
+                //var hover_stat=true;
+                if (hover_stat) GetTimezones(offset, OnHover);
+                else GetTimezones(offset, OffHover);
+            })
+        }
+
+        function OnHover(tz_objs, section) {
+            tz_objs.forEach(function (obj) {
+                var tz_id = obj.id;
+                tz_id = "#" + tz_id.replace(/\//g, "-");
+                d3.select(tz_id).classed("hover", true);
+            });
+
+            var myoffset = section.offset;
+
+            if(parseInt(myoffset) >= 0) {
+                myoffset = "+" + myoffset;
+            }
+
+            return tooltip
+                    .html("<b>TIMEZONE UTC" + myoffset +  "</b><p>" + "CONTRIBUTERS: " + numberWithCommas(section.num_authors))
+                    //.html("CONTRIBUTERS: " + section.num_authors)
+                    .style('visibility', 'visible');
+
+
+//            return tooltip_classic
+//                    .d3.select("tooltip")
+//                    .style('visibility', 'visible');
+        }
+
+        function OffHover(tz_objs, section) {
+            tz_objs.forEach(function (obj) {
+                var tz_id = obj.id;
+                tz_id = "#" + tz_id.replace(/\//g, "-");
+                d3.select(tz_id).classed("hover", false);
+            });
+        }
+
+    function GetTimezones(offset, callback){
+        var tz_objs = [];
+        var section;
+
+        for (var i = 0; i < sections.length; i++){
+            if(sections[i].offset == offset) {
+                section = sections[i];
+                break;
+            }
+        }
+        // check if array is empty
+
+        d3.json("timezones.json", function(error, timezones) {
+            if (error) throw error;
+
+            var data = topojson.feature(timezones, timezones.objects.timezones).features;
+
+            for (var j = 0; j < data.length; j++) {
+                for (var i = 0; i < section.utc.length; i++){
+                    if (data[j].id == section.utc[i]){
+                        tz_objs.push(data[j]);
+                        if (tz_objs.length == section.utc.length) break;
+                    }
+                    if (tz_objs.length == section.utc.length) break;
+                }
+            }
+            callback(tz_objs, section);
+
+        });
+
+    }
+    //PreProcessSections(TreatCommitData(ColorMap));
+
+    d3.select(self.frameElement)
+            .style("height", HEIGHT + "px");
+
+
+
+</script>
+</body>
+</html>
