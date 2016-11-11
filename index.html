@@ -1,212 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>GitHubViz - Visualizing trending programming languages in GitHub</title>
-	<!--<link href='http://fonts.googleapis.com/css?family=PT+Sans:400' rel='stylesheet' type='text/css'>-->
-	<!--<link href="http://fonts.googleapis.com/css?family=Raleway:300,700" rel="stylesheet" type="text/css">-->
-	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="css/pc.css">
+  <meta charset="UTF-8">
+  <title>GitHubViz - An Open-Source Visualization Tool for GitHub Data Analysis</title>
 
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="bower_components/foundation/js/foundation.js"></script>
-    <script src="bower_components/modernizr/modernizr.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js" charset="utf-8"></script>
-	<script>window.d3||document.write('<script src="js/vendors/d3/d3.min.js"><\/script>');</script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 </head>
-<body>
-	<div id="wrapper">
-		<div id="header">
-			<h1>GitHub<b>Viz</b></h1>
-			<h2>Visualizing trending programming languages in GitHub</h2>
-		</div>
-		<div id="pc"></div>
-		<div id="footer"></div>
-	</div>
-	<script src="js/parallelcoordinates.js"></script>
-	<script src="js/smallmultiples.js"></script>
-	<script src="js/linechart.js"></script>
-	<script>
-	
-		d3.csv("data/languages.csv",function(d){
-			
-			d["Year"]=+d["Year"];
-			d["name_lc"]=d["Name"].toLowerCase();
+<body style="padding-top: 40px">
+  <section>
+    <div class="container">
+      <div class="jumbotron">
+        <h1>GitHubViz</h1>
+        <p>An Open-Source Visualization Tool for GitHub Data Analysis</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+      </div>
+    </div>
+  </section>
 
-			return d;
-		
-		},function(data){
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="thumbnail">
+            <img src="images/res3" alt="Visualizing trending programming languages in GitHub">
+            <div class="caption">
+              <h3>Visualizing trending programming languages in GitHub</h3>
+              <p></p>
+              <p><a href="#" class="btn btn-primary" role="button">View</a> <a href="trending-languages.html" class="btn btn-default" role="button">View</a></p>
+            </div>
+          </div>
+        </div>
 
-			//console.log(data);
+        <div class="col-md-4">
+          <div class="thumbnail">
+            <img src="images/res2" alt="Visualizing Contribution by Timezone in GitHub">
+            <div class="caption">
+              <h3>Visualizing Contribution by Timezone in GitHub</h3>
+              <p></p>
+              <p><a href="#" class="btn btn-primary" role="button">View</a> <a href="timezone.html" class="btn btn-default" role="button">View</a></p>
+            </div>
+          </div>
+        </div>
 
-			var programming_languages={};
-			data.forEach(function(lang){
-				programming_languages[lang["name_lc"]]=lang["Year"];
-			})
+        <div class="col-md-4">
+          <div class="thumbnail">
+            <img src="images/res1" alt="Visualizing Activity in GitHub">
+            <div class="caption">
+              <h3>Visualizing Activity in GitHub</h3>
+              <p></p>
+              <p><a href="#" class="btn btn-primary" role="button">View</a> <a href="#" class="btn btn-default" role="button">View</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            var unknonw=[];
-
-            d3.json("data/quantity.json",function(q){
-
-                //q.active_repos_by_url=+q.active_repos_by_url;
-                //q.events=+q.events;
-                //console.log("q-antes:")
-                //console.log(q)
-
-                for (var i = 0; i < q.length; i++){
-                    var obj = q[i];
-                    //console.log("obj:")
-                    //console.log(obj)
-                    if(!programming_languages[obj.language_name.toLowerCase()]) {
-                        if(unknonw.indexOf(obj.language_name.toLowerCase())==-1) {
-                            unknonw.push(obj.language_name.toLowerCase())
-                        }
-                    }
-
-                    obj.year=programming_languages[obj.language_name.toLowerCase()] || 1970;
-
-                }
-
-                //console.log("q-depois:")
-                //console.log(q)
-                //console.log("the end");
-
-                //console.log(q.repository_language,q)
-                //return q;
-					var quantity={};
-					q.forEach(function(d){
-                        if(!quantity[d["language_name"]]) {
-                            quantity[d["language_name"]]={
-                                language_name:d["language_name"]
-                            };
-                        }
-                        quantity[d["language_name"]][d["month"]]=parseInt(d["quantity"]);
-
-                        if(!quantity[d["language_name"]]["jan"]) quantity[d["language_name"]]["jan"] = 0;
-                        if(!quantity[d["language_name"]]["feb"]) quantity[d["language_name"]]["feb"] = 0;
-                        if(!quantity[d["language_name"]]["mar"]) quantity[d["language_name"]]["mar"] = 0;
-						if(!quantity[d["language_name"]]["apr"]) quantity[d["language_name"]]["apr"] = 0;
-						if(!quantity[d["language_name"]]["may"]) quantity[d["language_name"]]["may"] = 0;
-						if(!quantity[d["language_name"]]["jun"]) quantity[d["language_name"]]["jun"] = 0;
-
-                        quantity[d["language_name"]]["sum"] =   quantity[d["language_name"]]["jan"] +
-                                                                quantity[d["language_name"]]["feb"] +
-                                                                quantity[d["language_name"]]["mar"] +
-																quantity[d["language_name"]]["apr"] +
-																quantity[d["language_name"]]["may"] +
-																quantity[d["language_name"]]["jun"];
-
-                        quantity[d["language_name"]].year=d.year;
-
-						//events["active_repos_by_url"]=d["active_repos_by_url"];
-					})
-
-                    console.log("obj:");
-                    //console.log(d3.values(quantity));
-
-
-                    var obj = d3.values(quantity);
-                    console.log(obj);
-
-                    obj.sort(function(a, b){                    // ordering objects
-                        return d3.descending(a.sum, b.sum);
-                    });
-
-
-                    var others = {
-                        "jan": 0,
-                        "feb": 0,
-                        "mar": 0,
-                        "language_name": "others",
-                        "year": "1970"
-                    }
-
-                console.log(others);
-
-                    for (var i = 30; i < obj.length; i++) {
-                        others["jan"] += obj[i]["jan"];
-                        others["feb"] += obj[i]["feb"];
-                        others["mar"] += obj[i]["mar"];
-                    }
-
-                    others.sum = others.jan + others.feb + others.mar;
-
-                    obj = obj.slice(0, 49);                     // taking the first ones
-                    //obj.push(others);
-
-
-                    	//return;
-                pc=new ParallelCoordinates(obj,{
-                    //nested_by_quarter:nested_by_quarter,
-                    programming_languages:programming_languages,
-                    container:"#pc",
-                    scale:"linear",
-                    //columns:["name","created","active_repos_by_url","lang_usage","events_per_repo","sum_rep_size","sum_rep_forks","sum_rep_openissues","sum_rep_watchers","year"],
-                    columns:["name","jan","feb","mar", "apr", "may","jun", "sum", "year"],//"CreateEvent"
-                    ref:"lang_usage",
-                    title_column:"name",
-                    scale_map:{
-                        "year":"linear",
-                        "name":"ordinal",
-                        "name2":"ordinal",
-                        "jan":"ordinal",
-                        "feb":"ordinal",
-                        "mar":"ordinal",
-						"apr":"ordinal",
-						"may":"ordinal",
-						"jun":"ordinal",
-                        "sum":"ordinal"
-                    },
-                    use:{
-                        "name":"sum" // determines which field will be used to order the first column (language names)
-                    },
-                    sorting:{
-                        "name":d3.descending // type of ordering
-                    },
-                    formats:{
-                        "year":"d"
-                    },
-                    dimensions:["jan","feb","mar","apr","may","jun","year","sum","name"],
-                    column_map:{
-                        "name":["Repository","Language"],
-                        "jan":"January",
-                        "feb":"February",
-                        "mar":"March",
-						"apr":"April",
-						"may":"May",
-						"jun":"June",
-                        "sum":"Total",
-                        "year":["Appeared","in Year"],
-                    },
-                    duration:2000,
-                    path:"data/",
-                    extension:"json"
-                });
-
-                d3.select("#load")
-                        .selectAll("a.load")
-                        .data([
-                            "quantity"
-                        ])
-                        .enter()
-                        .append("a")
-                        .text(function(d){
-                            return d;
-                        })
-                        .attr("href","#")
-                        .style({
-                            margin:"0px 5px"
-                        })
-                        .on("click",function(d){
-                            d3.event.preventDefault();
-                            pc.loadData(d);
-                        })
-            });
-			
-		});
-		
-	
-	</script>
-
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </body>
-</html>

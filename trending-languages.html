@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>parallel coordinates</title>
+	<title>GitHubViz - Visualizing trending programming languages in GitHub</title>
 	<!--<link href='http://fonts.googleapis.com/css?family=PT+Sans:400' rel='stylesheet' type='text/css'>-->
 	<!--<link href="http://fonts.googleapis.com/css?family=Raleway:300,700" rel="stylesheet" type="text/css">-->
-	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="css/pc.css">
-	<link rel="stylesheet" href="css/sm.css">
-	<link rel="stylesheet" href="css/lc.css">
 
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/foundation/js/foundation.js"></script>
@@ -19,19 +17,10 @@
 <body>
 	<div id="wrapper">
 		<div id="header">
-			<h1>Git<b>Hut</b></h1>
-			<h2>Visualizing programming languages in GitHub</h2>
+			<h1>GitHub<b>Viz</b></h1>
+			<h2>Visualizing trending programming languages in GitHub</h2>
 		</div>
-		<div id="qc"></div>
 		<div id="pc"></div>
-		<div id="sm_header">
-			<h2>Which languages are trending more?</h2>
-			<h3>Trending programming languages in active GitHub repository</h3>
-			<a href="#" id="num">#</a>
-			&nbsp;&nbsp;
-			<a href="#" id="perc">%</a>
-		</div>
-		<div id="sm"></div>
 		<div id="footer"></div>
 	</div>
 	<script src="js/parallelcoordinates.js"></script>
@@ -93,13 +82,19 @@
                         }
                         quantity[d["language_name"]][d["month"]]=parseInt(d["quantity"]);
 
-                        if(!quantity[d["language_name"]]["01"]) quantity[d["language_name"]]["01"] = 0;
-                        if(!quantity[d["language_name"]]["02"]) quantity[d["language_name"]]["02"] = 0;
-                        if(!quantity[d["language_name"]]["03"]) quantity[d["language_name"]]["03"] = 0;
+                        if(!quantity[d["language_name"]]["jan"]) quantity[d["language_name"]]["jan"] = 0;
+                        if(!quantity[d["language_name"]]["feb"]) quantity[d["language_name"]]["feb"] = 0;
+                        if(!quantity[d["language_name"]]["mar"]) quantity[d["language_name"]]["mar"] = 0;
+						if(!quantity[d["language_name"]]["apr"]) quantity[d["language_name"]]["apr"] = 0;
+						if(!quantity[d["language_name"]]["may"]) quantity[d["language_name"]]["may"] = 0;
+						if(!quantity[d["language_name"]]["jun"]) quantity[d["language_name"]]["jun"] = 0;
 
-                        quantity[d["language_name"]]["sum"] =   quantity[d["language_name"]]["01"] +
-                                                                quantity[d["language_name"]]["02"] +
-                                                                quantity[d["language_name"]]["03"] ;
+                        quantity[d["language_name"]]["sum"] =   quantity[d["language_name"]]["jan"] +
+                                                                quantity[d["language_name"]]["feb"] +
+                                                                quantity[d["language_name"]]["mar"] +
+																quantity[d["language_name"]]["apr"] +
+																quantity[d["language_name"]]["may"] +
+																quantity[d["language_name"]]["jun"];
 
                         quantity[d["language_name"]].year=d.year;
 
@@ -107,18 +102,37 @@
 					})
 
                     console.log("obj:");
-                    console.log(quantity);
                     //console.log(d3.values(quantity));
 
 
                     var obj = d3.values(quantity);
                     console.log(obj);
 
-                    obj.sort(function(a, b){
+                    obj.sort(function(a, b){                    // ordering objects
                         return d3.descending(a.sum, b.sum);
                     });
 
-                    obj = obj.slice(0, 29);
+
+                    var others = {
+                        "jan": 0,
+                        "feb": 0,
+                        "mar": 0,
+                        "language_name": "others",
+                        "year": "1970"
+                    }
+
+                console.log(others);
+
+                    for (var i = 30; i < obj.length; i++) {
+                        others["jan"] += obj[i]["jan"];
+                        others["feb"] += obj[i]["feb"];
+                        others["mar"] += obj[i]["mar"];
+                    }
+
+                    others.sum = others.jan + others.feb + others.mar;
+
+                    obj = obj.slice(0, 49);                     // taking the first ones
+                    //obj.push(others);
 
 
                     	//return;
@@ -128,34 +142,43 @@
                     container:"#pc",
                     scale:"linear",
                     //columns:["name","created","active_repos_by_url","lang_usage","events_per_repo","sum_rep_size","sum_rep_forks","sum_rep_openissues","sum_rep_watchers","year"],
-                    columns:["name","01","02","03","year"],//"CreateEvent"
+                    columns:["name","jan","feb","mar", "apr", "may","jun", "sum", "year"],//"CreateEvent"
                     ref:"lang_usage",
                     title_column:"name",
                     scale_map:{
                         "year":"linear",
                         "name":"ordinal",
-                        "01":"ordinal",
-                        "02":"ordinal",
-                        "03":"ordinal",
+                        "name2":"ordinal",
+                        "jan":"ordinal",
+                        "feb":"ordinal",
+                        "mar":"ordinal",
+						"apr":"ordinal",
+						"may":"ordinal",
+						"jun":"ordinal",
+                        "sum":"ordinal"
                     },
                     use:{
-                        "name":"year"
+                        "name":"sum" // determines which field will be used to order the first column (language names)
                     },
                     sorting:{
-                        "name":d3.descending
+                        "name":d3.descending // type of ordering
                     },
                     formats:{
                         "year":"d"
                     },
-                    dimensions:["01","02","03","year","name"],
+                    dimensions:["jan","feb","mar","apr","may","jun","year","sum","name"],
                     column_map:{
                         "name":["Repository","Language"],
-                        "01":"Janeiro",
-                        "02":"Fevereiro",
-                        "03":"Marco",
+                        "jan":"January",
+                        "feb":"February",
+                        "mar":"March",
+						"apr":"April",
+						"may":"May",
+						"jun":"June",
+                        "sum":"Total",
                         "year":["Appeared","in Year"],
                     },
-                    duration:1000,
+                    duration:2000,
                     path:"data/",
                     extension:"json"
                 });
